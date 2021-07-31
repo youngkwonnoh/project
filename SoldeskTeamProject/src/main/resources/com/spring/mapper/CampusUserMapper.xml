@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.spring.mapper.CampusUserMapper">
+
+	<!-- 회원가입(insert)-->
+	<insert id="insert">
+		insert into CAMPUS_USER(u_userid, u_password, u_username, u_email, u_phone, u_address)
+		values(#{u_userid}, #{u_password}, #{u_username}, #{u_email}, #{u_phone}, #{u_address})
+	</insert>
+
+	<!-- 로그인/LoginVO 사용
+	<select id="login" resultType="com.spring.domain.LoginVO">
+		select u_userid, u_password from CAMPUS_USER where u_userid = #{u_userid} and u_password = #{u_password}
+	</select> -->
+	
+	<select id="login" resultType="com.spring.domain.CampusUserVO">
+		select u_userid, u_password, u_username, u_email, u_phone, u_address 
+		from CAMPUS_USER 
+		where u_userid = #{u_userid} and u_password = #{u_password}
+	</select>
+	
+	<!-- 중복된 아이디 검사: dupId -->
+	<select id="dupId" resultType="com.spring.domain.CampusUserVO">
+		select u_userid from CAMPUS_USER where u_userid = #{u_userid}
+	</select>
+	
+	<!-- 회원 아이디 검사: findId -->
+	<select id="findId" resultType="com.spring.domain.CampusUserVO">
+		select u_userid from CAMPUS_USER where u_username = #{u_username} and u_phone = #{u_phone}
+	</select>
+
+	<!-- 회원 비밀번호 검사: findPw -->
+	<select id="findPw" resultType="com.spring.domain.CampusUserVO">
+		select u_password from CAMPUS_USER where u_userid = #{u_userid} and u_username = #{u_username} and u_phone = #{u_phone}
+	</select>
+	
+	<!-- 탈퇴2 - 정보 제거: leave -->
+	<delete id="leaveCamp">
+		delete from CAMPUS_USER where u_userid = #{u_userid} and u_password = #{u_password}
+	</delete>
+	
+	<!-- 비밀번호 확인 : pwdCheck -->
+	<select id="pwdCheck" resultType="int">
+		select count(*) from CAMPUS_USER where u_userid = #{u_userid} and u_password = #{u_password} 
+	</select>
+	
+	<!-- 정보변경 : 비밀번호만 변경 -->
+	<update id="updatePw">
+		update CAMPUS_USER set u_password = #{u_password} where u_userid = #{u_userid}
+	</update>
+	
+	<!-- 정보 변경 : update -->
+	<update id="update">
+		update CAMPUS_USER set u_password = #{u_password}, u_email = #{u_email}, u_phone = #{u_phone}, u_address = #{u_address} where u_userid = #{u_userid}
+	</update>
+	
+	
+	<resultMap type="com.spring.domain.CampusUserVO" id="campusUserMap">
+		<id property="u_userid" column="u_userid"/>
+		<result property="u_userid" column="u_userid"/>
+		<result property="u_password" column="u_password"/>
+		<result property="u_username" column="u_username"/>
+		<result property="u_email" column="u_email"/>
+		<result property="u_phone" column="u_phone"/>
+		<result property="u_address" column="u_address"/>
+		<collection property="authList" resultMap="authMap"/>
+	</resultMap>
+		
+	<resultMap type="com.spring.domain.CampusAuthVO" id="authMap">
+		<result property="u_userid" column="u_userid"/>
+		<result property="u_auth" column="u_auth"/>
+	</resultMap>
+	
+	<select id="read" resultMap="campusUserMap">
+		select camp.u_userid, u_password, u_username, u_email, u_phone, u_address, u_auth
+		from campus_user camp left outer join campus_user_auth auth on camp.u_userid = auth.u_userid
+		where camp.u_userid = #{u_userid}
+	</select>
+	
+	<select id="userList" resultMap="campusUserMap">
+		select camp.u_userid, u_username, u_email, u_phone, u_address, u_auth
+		from campus_user camp left outer join campus_user_auth auth on camp.u_userid = auth.u_userid 
+	</select>
+	
+
+</mapper>
