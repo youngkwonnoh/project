@@ -87,6 +87,17 @@ public class RegisterController {
 		return "true";
 	}
 	
+	// 이메일 인증
+	@ResponseBody // 리턴값의 의미가 jsp를 찾으라는 의미가 아니고 결과값의 의미
+	@PostMapping("/chkEmail")
+	public String chkEmailPost(String u_email) {
+		log.info("이메일 인증 : " + u_email);
+		if(u_email != null) {
+			return "true";
+		}
+		return "false";
+	}
+	
 	 // /register 직접 눌러서 접근하는 경우 - 405에러
 	@GetMapping(value={"/regist"})
 	public String handleStep() {

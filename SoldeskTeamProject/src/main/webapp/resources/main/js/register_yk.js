@@ -12,24 +12,6 @@ $(function() {
 			alert("비밀번호를 입력하세요");
 			return false;
 		}
-/*		$.ajax({
-			url: "/checkLogin",
-			type: "POST",
-			dataType: "json",
-			data: {
-				 u_userid : u_userid,
-				 u_password : u_password
-			},
-			success: function(result){
-				if(result== 0){
-					alert("아이디나 비밀번호를 확인하세요");
-					return false;
-				} else {
-					$("#formId").submit();
-					alert("환영합니다.");
-				}
-			}
-		});*/
 	});
 
 	
@@ -62,6 +44,37 @@ $(function() {
 			}
 		});
 	});
+	
+	$("#chkEmail").click(function(){
+		var u_email = $("#u_email").val();
+		var regEmail = /[a-z0-9]{2,}@[a-z0-9]{2,}\.[a-z0-9]{2,}/i;
+			
+		alert("이메일 인증 : " + u_email);
+		if(u_email == '') {
+			$('i[id="u_email"]').html("이메일 입력하세요");
+			return false;
+		} else if(!regEmail.test(u_email)) {
+			$('i[id="u_email"]').html("이메일 형식을 확인하세요");
+			return false;
+		}
+		$.ajax({
+			url: "/chkEmail",
+			type: "POST",
+			data: {
+				 u_email : u_email
+			},
+			success: function(result){
+				if(result=='false'){
+					$('i[id="u_email"]').html("이메일 미확인");
+					return false;
+				} else {
+					$('i[id="u_email"]').html("이메일 확인");
+					return false;
+				}
+			}
+		});
+	});
+	
 	// ajax에서 csrf 사용을 위한 부분
     var token = $("meta[name='_csrf']").attr("content");
     var header = $("meta[name='_csrf_header']").attr("content");
@@ -166,8 +179,5 @@ signup.addEventListener("click", function(event) {
 		$('i[id="u_address"]').html("");
 		event.preventDefault();	
 	}
-/*	} else if(!(u_address.value == '' || !regId.test(u_address.value))){
-		$('i[id="u_address"]').html("");
-		event.preventDefault();	
-	}*/
+
 })
