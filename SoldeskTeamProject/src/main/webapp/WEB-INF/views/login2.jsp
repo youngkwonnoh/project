@@ -225,7 +225,9 @@
 				$('i[id="u_email1"]').html("이메일 형식을 확인하세요");
 				return false;
 			}
-			
+
+			$('input[name="u_email"]').val(u_email);
+
 			$.ajax({
 				url: "/chkEmail",
 				type: "POST",
@@ -262,6 +264,9 @@
 				$('i[id="u_email2"]').html("이메일 형식을 확인하세요");
 				return false;
 			}
+			
+			$('input[name="u_email"]').val(u_email);
+			
 			$.ajax({
 				url: "/chkEmail",
 				type: "POST",
