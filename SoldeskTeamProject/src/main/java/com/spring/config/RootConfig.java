@@ -97,8 +97,8 @@ public class RootConfig {
 		JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 		mailSender.setHost("smtp.gmail.com");
 		mailSender.setPort(587);
-		mailSender.setUsername("내 gmail 주소");
-		mailSender.setPassword("내 메일 비밀번호");
+		mailSender.setUsername("본인 메일주소(gmail)");
+		mailSender.setPassword("비밀번호");
 		mailSender.setDefaultEncoding("utf-8");
 		mailSender.setJavaMailProperties(properties);
 		
