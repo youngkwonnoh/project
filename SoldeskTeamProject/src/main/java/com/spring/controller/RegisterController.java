@@ -56,7 +56,7 @@ public class RegisterController {
 	}
 	
 	// 약관 동의 시 이동
-	@PostMapping("/regist")
+	@RequestMapping("/regist")
 	public void registerPost() {
 		log.info("회원가입 페이지 요청");
 	}
@@ -131,9 +131,9 @@ public class RegisterController {
 		
 	}
 	
-	 // /register 직접 눌러서 접근하는 경우 - 405에러
-	@GetMapping(value={"/regist"})
-	public String handleStep() {
-		return "redirect:agree";
-	}
+//	 // /register 직접 눌러서 접근하는 경우 - 405에러
+//	@GetMapping(value={"/regist"})
+//	public String handleStep() {
+//		return "redirect:agree";
+//	}
 }
