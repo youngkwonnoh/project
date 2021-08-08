@@ -196,7 +196,8 @@ public class MemberController {
 		if(vo1!=null) {
 			log.info("아이디 비밀번호 확인 : " + vo.getU_userid() + " " + vo.getU_password());
 			if(service.login(vo)!=null) {
-				return "true";
+				String name = vo.getU_username();
+				return name;
 			}
 		}
 		return "false";

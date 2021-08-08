@@ -88,8 +88,10 @@
 							<button type="button" class="btn btn-info" onclick="location.href='/payment/paymentlist?u_userid=${user.username}'">구매내역</button>
 							<p></p>
 						</sec:authorize>
-						<button type="submit" class="btn btn-secondary"><a href="/reservation">예약내역</a></button>
-						<p></p>
+						<sec:authorize access="hasRole('ROLE_USER')">
+							<button type="submit" class="btn btn-secondary"><a href="/reservation">예약내역</a></button>
+							<p></p>
+						</sec:authorize>
 						<button type="submit" id="modify" class="btn btn-warning"><a href="/myModify">회원정보수정</a></button>
 
                    	
@@ -101,15 +103,4 @@
         </div>
     </div>
 </form>
-
-  
-<!-- <form action="" id="mypageForm" method="post">
-	<input type="hidden" name="u_userid"  value="${u_userid}"/>
-	<input type="hidden" name="u_username"  value="${vo.u_username}"/>
-	<input type="hidden" name="u_address"  value="${vo.u_address}"/>
-	<input type="hidden" name="u_phone"  value="${vo.u_phone}"/>
-</form> -->
-
-
-<script src="/resources/main/js/loginMypage.js"></script>
 <%@include file="../design/footer.jsp" %>
