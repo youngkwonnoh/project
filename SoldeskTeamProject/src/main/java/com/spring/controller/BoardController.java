@@ -24,16 +24,21 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.spring.domain.CampusAttachFileDTO;
+import com.spring.domain.CampusBoardCheckOrderVO;
+import com.spring.domain.CampusBoardListPageVO;
 import com.spring.domain.CampusBoardTopVO;
 import com.spring.domain.CampusBoardVO;
 import com.spring.domain.CampusCriteria;
+import com.spring.domain.CampusOrderDetailVO;
 import com.spring.domain.CampusPageVO;
+import com.spring.domain.CampusProductCategoryVO;
 import com.spring.domain.CampusProductOptionVO;
 import com.spring.domain.CampusProductVO;
 import com.spring.domain.CampusReplyPageVO;
 import com.spring.domain.CampusReplyVO;
 import com.spring.domain.CampusUserVO;
 import com.spring.service.CampusBoardService;
+import com.spring.service.CampusPaymentService;
 import com.spring.service.CampusProductService;
 import com.spring.service.CampusReplyService;
 
@@ -53,13 +58,16 @@ public class BoardController {
 	
 	@Autowired
 	private CampusProductService product;
+	
+	@Autowired
+	private CampusPaymentService payservice;
 
 	@GetMapping("/list")
 	public void list(Model model, CampusCriteria cri) {
 		log.info("※※※※※ list ※※※※※");  
 
 		//오늘의 화제글
-		List<CampusBoardTopVO> top = new ArrayList<CampusBoardTopVO>();
+		List<CampusBoardTopVO> toooop = new ArrayList<CampusBoardTopVO>();
 		
 		List<CampusBoardVO> datelist = service.topdate();
 		int rank = 0;
@@ -97,7 +105,7 @@ public class BoardController {
 			tovo.setUrllink(imgurl);
 			tovo.setRank(rank);
 			
-			top.add(tovo);
+			toooop.add(tovo);
 		}
 		//만약, 오늘 쓴 글이 3개 미만일 경우, 빈 페이지 올리기
 		if (rank <= 2) {
@@ -107,7 +115,7 @@ public class BoardController {
 				tovo.setB_content_15("오늘의 화제글이 없습니다!");
 				tovo.setRank(999);
 				tovo.setUrllink("/resources/main/images/default-img.jpg");
-				top.add(tovo);
+				toooop.add(tovo);
 			}
 		}
 		
@@ -118,12 +126,17 @@ public class BoardController {
 		model.addAttribute("list", list);
 		
 		//오늘의 화제글 값 모델에 등록
-		model.addAttribute("CampusTopVO", top);
+		model.addAttribute("CampusTopVO", toooop);
 		
 		//페이지 나누기 값 모델에 등록
 		CampusPageVO campusPageVO = new CampusPageVO(cri, total);
 		model.addAttribute("CampusPageVO", campusPageVO);
+		
+		//카테고리값넘기기
+		List<CampusProductCategoryVO> category = product.category(cri);
+		model.addAttribute("category",category);
 	}
+	
 	
 	@PostMapping("/viewadd")
 	@ResponseBody
@@ -144,7 +157,7 @@ public class BoardController {
 		return viewsS;
 	}
 	@PreAuthorize("isAuthenticated()")
-	@GetMapping("/view")
+	@PostMapping("/view")
 	public void read(int b_no,int b_views, int r_page,@ModelAttribute("cri") CampusCriteria cri,Model model) {
 		log.info("※※※※※ view ※※※※※");  
 		
@@ -217,7 +230,7 @@ public class BoardController {
 	public String writePost(CampusBoardVO vo, RedirectAttributes rttr) {
 		
 		log.info("※※※※※ post write ※※※※※");
-		
+		log.info("write    "+vo);
 		//글 작성 요청 및 성공/실패시
 		if(service.insert(vo)) {
 			
@@ -258,6 +271,33 @@ public class BoardController {
 		}else {
 			return "redirect:modify?b_no="+b_no+"&page="+cri.getPage()+"&keyword="+cri.getKeyword()+"&sort="+cri.getSort();
 		}
+	}
+		
+		@PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
+		@PostMapping("/removeAdmin")
+		public String removeAdmin(int b_no, String b_writer, CampusCriteria cri, RedirectAttributes rttr) {
+			
+			log.info("※※※※※ post remove ※※※※※");  
+			
+			//bno에 해당되는 첨부파일 목록 알아내기
+			List<CampusAttachFileDTO> attachList = service.getAttachList(b_no);
+			
+			//성공시 게시글 삭제 + 첨부파일 삭제
+			if(service.delete(b_no)) {
+
+				//폴더 파일 삭제
+				deleteFiles(attachList);
+				
+				rttr.addFlashAttribute("result", "성공");
+				
+				rttr.addAttribute("keyword",cri.getKeyword());
+				rttr.addAttribute("page",cri.getPage());
+				rttr.addAttribute("sort",cri.getSort());
+				
+				return "redirect:list";
+			}else {
+				return "redirect:modify?b_no="+b_no+"&page="+cri.getPage()+"&keyword="+cri.getKeyword()+"&sort="+cri.getSort();
+			}
 		
 		
 	}
@@ -468,28 +508,137 @@ public class BoardController {
 	}
 
 	
+	@GetMapping("/lists/{psort}/{ppage}/{pkeyword}/{ptest}")
+	public ResponseEntity<CampusBoardListPageVO> getLists(@PathVariable("psort")String sort,@PathVariable("ppage")int page,@PathVariable("pkeyword")String keyword,@PathVariable("ptest")String test){
+		log.info("게시판 에이작스");
+		
+		if (test.equals("후기")){
+			
+			CampusCriteria cri = new CampusCriteria();
+			cri.setPage(page);
+			if(keyword.equals("-") || sort.equals("-")) {
+				cri.setSort("");
+				cri.setKeyword("");
+			}else {				
+				cri.setSort(sort);
+				cri.setKeyword(keyword);
+			}
+			
+			int total = service.totalReview(cri);
+			List<CampusBoardVO> list = service.listReview(cri);
+			
+			CampusBoardListPageVO vo = new CampusBoardListPageVO(total,list);
+			
+			return new ResponseEntity<CampusBoardListPageVO>(vo,HttpStatus.OK);
+			
+		}else if(test.equals("질문")){
+			
+			CampusCriteria cri = new CampusCriteria();
+			cri.setPage(page);
+			if(keyword.equals("-") || sort.equals("-")) {
+				cri.setSort("");
+				cri.setKeyword("");
+			}else {				
+				cri.setSort(sort);
+				cri.setKeyword(keyword);
+			}
+			
+			int total = service.totalQNA(cri);
+			List<CampusBoardVO> list = service.listQNA(cri);
+			
+			CampusBoardListPageVO vo = new CampusBoardListPageVO(total,list);
+			
+			return new ResponseEntity<CampusBoardListPageVO>(vo,HttpStatus.OK);
+			
+		}
+	
+		return new ResponseEntity<CampusBoardListPageVO>(HttpStatus.BAD_REQUEST);
+		
+	}
+	
 	
 	@PreAuthorize("isAuthenticated()")
 	@RequestMapping(value="/checkpnumber", produces="application/text;charset=utf8", method = RequestMethod.POST)
 	@ResponseBody
-	public String checkpnumber(int p_number) {
+	public String checkpnumber(String checkId) {
 		
 		log.info("※※※※※ post checkpnumber ※※※※※");  
 		
-		CampusProductVO vo = product.viewProduct(p_number);
+		log.info("checkid "+checkId);
 		
-		String proName = "not";
-		log.info("체크넘버 : "+vo);
-		if(vo!=null) {
-			proName = vo.getP_name();
+		List<CampusProductVO> list = service.oneCheck(checkId);
+		
+		String name = "no";
+		int code = 0;
+		
+		try {
+			log.info("하나 잘 들어옴?",list);
+
+			
+			for(CampusProductVO vo:list) {
+				
+					name = vo.getP_name();
+					code = vo.getP_number();
+					
+				}
+
+			
+		} catch (Exception e) {
+			return name+"^$^0";
 		}
-		log.info("체크넘버스트링 : "+proName);
-		
-		return proName;
+
+		return name+"^$^"+code;
 	}
 	
-	
-	
+	@PreAuthorize("isAuthenticated()")
+	@RequestMapping(value="/checkpnumberOrder", produces="application/text;charset=utf8", method = RequestMethod.POST)
+	@ResponseBody
+	public String checkpnumberOrder(String checkId, String u_userid) {
+		
+		log.info("※※※※※ post order checkpnumber ※※※※※");  
+		
+		List<CampusProductVO> list = service.oneCheck(checkId);
+		List<CampusOrderDetailVO> dlist = payservice.orderdetaillist(u_userid);
+		
+		log.info(checkId);
+		log.info(u_userid);
+		
+		String name = "no";
+		int code = 0;
+		
+		try {
+			log.info("둘다 잘 들어옴?",list);
+			log.info("둘다 잘 들어옴?",dlist);
+			
+			for(CampusProductVO vo:list) {
+				
+				for(CampusOrderDetailVO dvo:dlist) {
+					
+					int dtest = dvo.getP_number();
+					int ltest = vo.getP_number();
+					
+					log.info("피넘버테스트 [ "+dtest);
+					log.info("피넘버테스트 [ "+ltest);
+					
+					
+					if (dtest == ltest) {
+						name = vo.getP_name();
+						code = vo.getP_number();
+						break;
+					}
+					
+				}
+				if (!name.equals("no")) {
+					break;
+				}
+			}
+			
+		} catch (Exception e) {
+			return name+"^$^0";
+		}
+
+		return name+"^$^"+code;
+	}
 	
 	//첨부물 가져오기
 	@GetMapping("/getAttachList")

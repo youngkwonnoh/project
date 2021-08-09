@@ -1,3 +1,4 @@
+
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
@@ -21,7 +22,8 @@
 
 
 			<p class="p_name">
-				<strong class="name">${vo.p_name}</strong> <span class="name_detail">상세설며어어쩌구저쩌구</span>
+				<strong class="name">${vo.p_name}</strong> <span class="name_detail">상세
+					설명</span>
 			</p>
 
 			<div class="p_info">
@@ -32,12 +34,10 @@
 					</colgroup>
 
 					<tbody>
-
-
 						<tr>
 							<td class="price"><fmt:formatNumber value="${vo.p_price}"
 									pattern="###,###,###"></fmt:formatNumber> <input type="hidden"
-								value="${vo.p_price}" name="price"></td>
+								value="${vo.p_price}" name="price">원</td>
 						</tr>
 
 						<tr>
@@ -52,25 +52,28 @@
 							<th><img src="/resources/main/images/money-bag.png">&nbsp;구매수량</th>
 							<td>
 								<div class="option">
-									<span class="opt">
-										<button type="button" class="minus">+</button> <input
-										type="number" readonly="readonly" min="1" max="${vo.p_stock}"
-										onfocus="this.blur()" class="inp">
-										<button type="button" class="plus">-</button>
-									</span>
+									<!--                            <span class="opt"> -->
+									<button type="button" class="btn minus off">-</button>
+									<input type="number" readonly="readonly" value="1"
+										max="${vo.p_stock}" class="inp"
+										style="border: none; width: 30px; height: 30px; text-align: center;">
+									<button type="button" class="btn plus">+</button>
+									<!--                            </span> -->
 								</div>
 							</td>
 						</tr>
 						<tr>
 							<th><img src="/resources/main/images/choices.png">&nbsp;${vo.p_option}선택</th>
-							<td><select>
+							<td><select name="option">
 									<option value="${vo.po_option1}" class="option">${vo.po_option1}</option>
-									<option value="${vo.po_option1}" class="option">${vo.po_option2}</option>
-									<option value="${vo.po_option1}" class="option">${vo.po_option3}</option>
+									<option value="${vo.po_option2}" class="option">${vo.po_option2}</option>
+									<option value="${vo.po_option3}" class="option">${vo.po_option3}</option>
 							</select>
 						<tr>
 							<th><img src="/resources/main/images/shipped.png">&nbsp;배송비</th>
-							<td>${vo.p_shippingfee}</td>
+							<td>${vo.p_shippingfee}<input type="hidden"
+								value="${vo.p_shippingfee} " name="shipping">
+							</td>
 						</tr>
 						<tr>
 							<th><img src="/resources/main/images/payment-method.png">&nbsp;배송
@@ -85,21 +88,26 @@
 						<div class="price">
 							<strong class="tot">총 상품금액 : </strong> <span class="sum">
 								<span class="num"> <%--                         <fmt:formatNumber value="${vo.p_price}" pattern="###,###,###"></fmt:formatNumber></span>  --%>
-									<input type="text" name="sum" class="subtotal" readonly
-									style="border: none;">+배송비 <span class="unit">원</span>
+									<input type="text" value="${vo.p_price + vo.p_shippingfee}"
+									name="sum" class="subtotal" readonly
+									style="border: none; text-align: center; font-weight: 700;"
+									onkeyup="numberWithCommas(this.vale)">+배송비(${vo.p_shippingfee})<span
+									class="unit">원</span>
 							</span>
 						</div>
 
 						<div class="option_btn">
 							<input type="hidden" id="p_number" value="${vo.p_number}">
-							<input type="hidden" name="userid" id="userid"
-								value="<sec:authentication property="principal.campusUser.u_userid"/>">
+							<sec:authorize access="isAuthenticated()">
+								<input type="hidden" name="userid" id="userid"
+									value="<sec:authentication property="principal.campusUser.u_userid"/>">
+							</sec:authorize>
 							<input type="hidden" name="${_csrf.parameterName}"
 								value="${_csrf.token}" />
 							<button type="button" class="btn btn-primary btn-lg"
 								id="btn_cart">장바구니</button>
-							<button type="button" class="btn btn-secondary btn-lg"
-								onclick="location.href='/payment/paymentpage'">구매하기</button>
+							   <button type="button" class="btn btn-secondary btn-lg subu"
+                        >구매하기</button>
 						</div>
 
 						<div class="p_detail_info">
@@ -123,33 +131,33 @@
 						<div class="p_detail_img">
 							<p id="mainImg"></p>
 							<script>
-								var str = "";
-							</script>
+                        var str = "";
+                     </script>
 							<c:forEach var="product" items="${con.attachList}">
 								<script>
-									var uuid = '${product.a_uuid}';
-									var path = '${product.a_path}';
-									var name = '${product.a_name}';
-									var imgPath = encodeURIComponent(path + "/"
-											+ uuid + "_" + name);
-									str += "<p><img src='/display?fileName="
-											+ imgPath
-											+ "' alt='' class='product_img'/></p>";
-								</script>
+                           var uuid = '${product.a_uuid}';
+                           var path = '${product.a_path}';
+                           var name = '${product.a_name}';
+                           var imgPath = encodeURIComponent(path + "/"
+                                 + uuid + "_" + name);
+                           str += "<p><img src='/display?fileName="
+                                 + imgPath
+                                 + "' alt='' class='product_img'/></p>";
+                        </script>
 							</c:forEach>
 							<script>
-								console.log(str);
-								/*  $(".test").html(str);   */
-								var imgArea = document
-										.querySelector("#mainImg");
-								imgArea.innerHTML = str;
-							</script>
+                        console.log(str);
+                        /*  $(".test").html(str);   */
+                        var imgArea = document
+                              .querySelector("#mainImg");
+                        imgArea.innerHTML = str;
+                     </script>
 
 
 							<div class="description">
 								<div class="d_wrapper">
 									<strong class="d_title"> <span>${vo.p_name}</span> <span
-										class="d_subtitle">[디테일설명같은거 추가?!@!]</span>
+										class="d_subtitle">${vo.p_manufact}</span>
 									</strong>
 									<p class="descript">${con.b_content}</p>
 
@@ -157,7 +165,8 @@
 										<h1>
 											<span class="rivew">Product's Review</span><br> <span
 												class="star">평균 별점 : <input type="text" class="avg"
-												readonly style="border: none; width: 30; height: 30;"></span>
+												readonly
+												style="border: none; width: 30; height: 30; text-align: center; color: red;"></span>
 										</h1>
 										<div class="row">
 											<div class="col-md-10"></div>
@@ -174,12 +183,11 @@
 													<th class="width10">평점</th>
 												</tr>
 											</thead>
-<%-- 											<c:set var="total" value="0" /> --%>
-											<c:forEach var="r" items="${review}">
-												<tbody class="textcenter">
+											<%--                                  <c:set var="total" value="0" /> --%>
+											<c:forEach var="r" items="${review}" varStatus="status">
+												<tbody class="textcenter1">
 													<tr>
-
-														<td>${r.rownum}</td>
+														<td>${status.count}</td>
 														<td>${r.b_sort}</td>
 														<td><a href="${r.b_no}"
 															class="blacktext hoverthema clickview">${r.b_title}</a></td>
@@ -204,9 +212,9 @@
 
 													</tr>
 												</tbody>
-<%-- 												<c:set var="total" value="${(total + r.b_rating)}" /> --%>
+												<%--                                     <c:set var="total" value="${(total + r.b_rating)}" /> --%>
 											</c:forEach>
-<%-- 											<c:out value="${total}" /> --%>
+											<%--                                  <c:out value="${total}" /> --%>
 										</table>
 										<div class="row">
 											<div class="col-md-12 mb-3">
@@ -216,33 +224,39 @@
 													onclick="location.href='/board/list'">전체 후기 보기</button>
 											</div>
 										</div>
-										<!-- 페이지 선택 버튼 -->
+										<!-- 페이지 선택 버튼
 										<div class="row">
 											<div class="col-md-12">
 												<ul class="mypagination justify-content-center">
 
-													<c:if test="${CampusPageVO.prev}">
+													<c:if test="${CampusPdetailPageVO.prev}">
 														<li class="mypage-item prev"><a
-															href="${CampusPageVO.startPage-1}" class="mypage-link">
+															href="${CampusPdetailPageVO.startPage-1}" class="mypage-link">
 																<< </a></li>
 													</c:if>
 
-													<c:forEach var="i" begin="${CampusPageVO.startPage}"
-														end="${CampusPageVO.endPage}">
+													<c:forEach var="i" begin="${CampusPdetailPageVO.startPage}"
+														end="${CampusPdetailPageVO.endPage}">
 														<li class="mypage-item"><a href="${i}"
-															class="mypage-link ${CampusPageVO.cri.page==i?'activecolor':''}">${i}</a></li>
+															class="mypage-link ${CampusPdetailPageVO.cri.page==i?'activecolor':''}">${i}</a></li>
 													</c:forEach>
 
-													<c:if test="${CampusPageVO.next}">
+													<c:if test="${CampusPdetailPageVO.next}">
 														<li class="mypage-item next"><a
-															href="${CampusPageVO.endPage+1}" class="mypage-link">
+															href="${CampusPdetailPageVO.endPage+1}" class="mypage-link">
 																>> </a></li>
 													</c:if>
-
 												</ul>
 											</div>
-										</div>
+										</div> -->
 										<div class="col-md-1"></div>
+													<form action="productdetail" method="get" id="pageForm">
+														<input type="hidden" name="sort"
+															value="${cri.sort}" /> <input type="hidden"
+															name="keyword" value="${cri.keyword}" /> <input
+															type="hidden" name="page"
+															value="${cri.page}" />
+													</form>
 										<div class="p_qna">
 											<h1>
 												<span class="qna_tit"> Q&A </span><br> <span
@@ -263,9 +277,9 @@
 													</tr>
 												</thead>
 												<tbody class="textcenter" id="tbody">
-													<c:forEach var="q" items="${question}">
+													<c:forEach var="q" items="${question}" varStatus="status">
 														<tr>
-															<td>${q.rownum+1}</td>
+															<td>${status.count}</td>
 															<td>${q.b_sort}</td>
 															<td><a href="${q.b_no}"
 																class="blacktext hoverthema clickview">${q.b_title}</a></td>
@@ -292,37 +306,38 @@
 											</table>
 											<div class="row">
 												<div class="col-md-12 mb-3">
-													<button class="btn btn-primary float-end">글 쓰기</button>
-													<button class="btn btn-primary float-end" id="btn3">전체
-														후기 보기</button>
+													<button class="btn btn-primary float-end"
+														onclick="location.href='/board/write'">글 쓰기</button>
+													<button class="btn btn-primary float-end" id="btn3"
+														onclick="location.href='/board/list'">전체 질문 보기</button>
 												</div>
 											</div>
-											<!-- 페이지 선택 버튼 -->
+											<!-- 페이지 선택 버튼 
 											<div class="row">
 												<div class="col-md-12">
 													<ul class="mypagination justify-content-center">
 
-														<c:if test="${CampusPageVO.prev}">
+														<c:if test="${CampusPdetailPageVO.prev}">
 															<li class="mypage-item prev"><a
-																href="${CampusPageVO.startPage-1}" class="mypage-link">
+																href="${CampusPdetailPageVO.startPage-1}" class="mypage-link">
 																	<< </a></li>
 														</c:if>
 
-														<c:forEach var="i" begin="${CampusPageVO.startPage}"
-															end="${CampusPageVO.endPage}">
+														<c:forEach var="i" begin="${CampusPdetailPageVO.startPage}"
+															end="${CampusPdetailPageVO.endPage}">
 															<li class="mypage-item"><a href="${i}"
-																class="mypage-link ${CampusPageVO.cri.page==i?'activecolor':''}">${i}</a></li>
+																class="mypage-link ${CampusPdetailPageVO.cri.page==i?'activecolor':''}">${i}</a></li>
 														</c:forEach>
 
-														<c:if test="${CampusPageVO.next}">
+														<c:if test="${CampusPdetailPageVO.next}">
 															<li class="mypage-item next"><a
-																href="${CampusPageVO.endPage+1}" class="mypage-link">
+																href="${CampusPdetailPageVO.endPage+1}" class="mypage-link">
 																	>> </a></li>
 														</c:if>
 
 													</ul>
 												</div>
-											</div>
+											</div>-->
 											<div class="change_info">
 
 												<div>
@@ -367,53 +382,72 @@
 	</div>
 </div>
 
-<form action="list" method="get" id="actionForm1">
-	<input type="hidden" name="sort" value="${cri.sort}" /> <input
-		type="hidden" name="keyword" value="${cri.keyword}" /> <input
-		type="hidden" name="page" value="${cri.page}" />
+<form action="productdetail" method="get" id="actionForm1">
+   <input type="hidden" name="sort" value="${cri.sort}" /> <input
+      type="hidden" name="keyword" value="${cri.keyword}" /> <input
+      type="hidden" name="page" value="${cri.page}" />
+   <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
 </form>
 
-
 </div>
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"
 	integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
 	crossorigin="anonymous"></script>
 <!-- <script type= text/javascript> -->
 </script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 <script>
-	var csrfHeaderName = "${_csrf.headerName}";
-	var csrfTokenValue = "${_csrf.token}";
-	$("#btn_cart").click(function(e) {
-		e.preventDefault();
-		var p_number = $("#p_number").val();
-		var c_count = $(".inp").val();
-		var userid = $("#userid").val();
-		var option = $(".option").val();
-		var data = {
-			p_number : p_number,
-			c_count : c_count,
-			u_userid : userid,
-			c_option : option
-		};
-		$.ajax({
-			url : "/cart",
-			type : "post",
-			data : data,
-			beforeSend : function(xhr) {
-				xhr.setRequestHeader(csrfHeaderName, csrfTokenValue);
-			},
-			success : function() {
-				var cart = confirm("장바구니에 담았습니다. 장바구니로 이동하시겠습니까?");
-				if (cart) {
-					location.href = "/cart?u_userid=" + userid;
-				}
-			},
-			error : function() {
-				alert("카트 담기 실패");
-			}
-		});
-	});
+   var csrfHeaderName = "${_csrf.headerName}";
+   var csrfTokenValue = "${_csrf.token}";
+   $("#btn_cart").click(function(e) {
+     
+	   e.preventDefault();
+      var p_number = $("#p_number").val();
+      var c_count = $(".inp").val();
+      var userid = $("#userid").val();
+      var option = $("select[name='option']").val();
+      var data = {
+         p_number : p_number,
+         c_count : c_count,
+         u_userid : userid,
+         c_option : option
+      };
+      $.ajax({
+         url : "/cart",
+         type : "post",
+         data : data,
+         beforeSend : function(xhr) {
+            xhr.setRequestHeader(csrfHeaderName, csrfTokenValue);
+         },
+         success : function(data,textstatus) {
+        		  var cart = swal("장바구니에 담았습니다!", {
+            	  buttons: {
+            		    catch: {
+            		      text: "상품 더 보기",
+            		    },
+            		    이동 :true
+            		  },
+            		})
+            		.then((value) => {
+            		  switch (value) {
+            		    case "이동":
+            		    	location.href = "/cart?u_userid=" + userid;
+            		      break;
+            		 
+            		    case "상품 더 보기":
+            		      break;
+            		  }
+            		});
+//         	 }else{
+//         		swal("회원만 사용가능합니다!", "로그인해주세요", "info");
+        },
+         error : function(data,textStatus) {
+        	 swal("카드 담기 실패!", "다시 확인해 주세요", "error");
+         }
+      });
+   });
 </script>
 <script src="/resources/main/js/pdetail.js"></script>
 <%@include file="../../design/footer.jsp"%>

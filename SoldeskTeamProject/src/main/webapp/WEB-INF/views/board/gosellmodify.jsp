@@ -47,7 +47,6 @@ $(function(){
 		$(".checkbtn").click(function(){
 		
 		var pnumber = $("#campusboard-pnumber").val();
-
 		$.ajax({
 			url: "/board/checkpnumber",
 			type: "POST",
@@ -59,14 +58,10 @@ $(function(){
 			},
 			success: function(result){
 				if(result=='not'){
-
 					$('.checkpnumbermsg').html("<p>해당 상품 번호와 동일한 상품이 존재하지 않습니다.</p>");
-
 					return false;
 				} else {
-
 					form.submit();
-
 					return false;
 					
 				}

@@ -3,11 +3,14 @@
  */
 $(function(){
 	
-		let checkistrue = false;
+	let pcode = "";
+	let checkistrue = false;
 	
-		$(".checkbtn").click(function(){
+	$(".checkbtn").click(function(){
 		
 		var pnumber = $("#campusboard-pnumber").val();
+
+		if($("#sort option:selected").val() == '질문'){
 
 		$.ajax({
 			url: "/board/checkpnumber",
@@ -16,28 +19,73 @@ $(function(){
 				xhr.setRequestHeader(csrfHeaderName,csrfTokenValue);
 			},
 			data: {
-				 p_number : pnumber
+				 checkId : pnumber
 			},
 			success: function(result){
-				if(result=='not'){
+				
+				console.log(result);
+				
+				if(result=='no^$^0'){
 
-					$('.checkpnumbermsg').html("<p>해당 상품 번호와 동일한 상품이 존재하지 않습니다.</p>");
+					$('.checkpnumbermsg').html("<p>해당 상품 이름과 연관된 상품이 존재하지 않습니다.</p>");
 					checkistrue = false;
 					return false;
+					
 				} else {
+					
+					resultStr = result.split("^$^");
+					
+					var name = resultStr[0];
+					pcode = resultStr[1];
 
-					$('.checkpnumbermsg').html("<p>상품명 : "+result+"</p>");
+					$('.checkpnumbermsg').html("<p>상품명 : "+name+"</p>");
 					checkistrue = true;
 					return false;
 					
 				}
 			}
 		})
+		
+		}else if($("#sort option:selected").val() == '후기'){
+			
+		$.ajax({
+			url: "/board/checkpnumberOrder",
+			type: "POST",
+			beforeSend:function(xhr){
+				xhr.setRequestHeader(csrfHeaderName,csrfTokenValue);
+			},
+			data: 'checkId='+pnumber+'&u_userid='+userid,
+
+			success: function(result){
+				if(result=='no^$^0'){
+
+					$('.checkpnumbermsg').html("<p>해당 상품 이름과 연관된 결제내역이 존재하지 않습니다.</p>");
+					checkistrue = false;
+					return false;
+					
+				} else {
+					
+					resultStr = result.split("^$^");
+					
+					var name = resultStr[0];
+					pcode = resultStr[1];
+
+					$('.checkpnumbermsg').html("<p>상품명 : "+name+"</p>");
+					checkistrue = true;
+					return false;
+					
+				}
+			}
+		})
+			
+		}
+
 	})
-	
+
 	
 	$("#sort").change(function(){
-		var star = ""
+		var star = "";
+		var inpu = "";
 		if($("#sort option:selected").val() == '후기'){
 			
 			star += '<div class="warning_msg">해당 상품의 별점을 선택해 주세요</div>'
@@ -46,10 +94,12 @@ $(function(){
 			star += '<input type="checkbox" name="b_rating3" id="rating3" value="3" class="rate_radio" title="3점"><label for="rating3"></label>'
 			star += '<input type="checkbox" name="b_rating4" id="rating4" value="4" class="rate_radio" title="4점"><label for="rating4"></label>'
 			star += '<input type="checkbox" name="b_rating5" id="rating5" value="5" class="rate_radio" title="5점"><label for="rating5"></label>'
+
+			$("#deleteprivate").remove();
 			
 			$(".rating").html(star)
 			
-		}else{
+		}else if($("#sort option:selected").val() == '질문'){
 			
 			$(".warning_msg").remove();
 			$("#rating1").remove();
@@ -57,6 +107,14 @@ $(function(){
 			$("#rating3").remove();
 			$("#rating4").remove();
 			$("#rating5").remove();
+			
+			star += '<b>공개 여부 : </b>';
+			star += '<select name="b_private" id="deleteprivate" class="form-control width15 inlinetest margintb20">'
+			star += '<option value="no">공개</option>'
+			star += '<option value="yes">비공개</option>'
+			star += '</select>'
+
+			$(".rating").html(star)
 			
 		}
 	})
@@ -94,12 +152,33 @@ $(function(){
 		var maxSize = 40971520; //20MB
 		
 		if(fileSize>maxSize){
-			alert("파일 사이즈 초과 ( 최대 20MB )");
+			Swal.fire({
+				  title: '<strong>파일의 크기가 초과되었습니다.</strong>',
+				  icon: 'info',
+				  html:
+				    '파일당 최대 20MB 까지 업로드가 가능합니다.',
+
+				  focusConfirm: false,
+				  confirmButtonColor: '#78c2ad',
+				  confirmButtonText:
+				    '확인'
+				})
 			return false;
 		}
 		
 		if(!regex.test(fileName)){
-			alert("해당 종류의 파일은 업로드 할 수 없습니다 (.jpg, .png)");
+			
+			Swal.fire({
+				  title: '<strong>해당 종류의 파일은 업로드 할 수 없습니다.</strong>',
+				  icon: 'info',
+				  html:
+				    '.jpg .png 파일만 업로드가 가능합니다.',
+
+				  focusConfirm: false,
+				  confirmButtonColor: '#78c2ad',
+				  confirmButtonText:
+				    '확인'
+				})
 			return false;
 		}
 
@@ -152,7 +231,17 @@ $(function(){
 
 			catchnum += 1;
 			if(catchnum > 3){
-				alert("사진은 최대 3개까지 업로드가 가능합니다.");
+				Swal.fire({
+				  title: '<strong>업로드 가능 사진이 초과되었습니다.</strong>',
+				  icon: 'info',
+				  html:
+				    '사진은 최대 3장 까지만 업로드가 가능합니다.',
+
+				  focusConfirm: false,
+				  confirmButtonColor: '#78c2ad',
+				  confirmButtonText:
+				    '확인'
+				})
 				catchnum -= 1;
 				return false;
 			}
@@ -191,27 +280,62 @@ $(function(){
 		console.log(sort)
 
 		if(sort == ""){
-			alert("분류를 선택해 주세요!");
+			Swal.fire({
+				  title: '<strong>분류를 선택해 주세요!</strong>',
+				  icon: 'info',
+				  focusConfirm: false,
+				  confirmButtonColor: '#78c2ad',
+				  confirmButtonText:
+				    '확인'
+				})
 			$("#sort").focus();
 			return;
 		}
 		if(title == ""){
-			alert("제목을 작성해 주세요!");
+			Swal.fire({
+				  title: '<strong>제목을 작성해 주세요!</strong>',
+				  icon: 'info',
+				  focusConfirm: false,
+				  confirmButtonColor: '#78c2ad',
+				  confirmButtonText:
+				    '확인'
+				})
 			$("#campusboard-title").focus();
 			return;
 		}
 		if(content == ""){
-			alert("내용을 작성해 주세요!");
+			Swal.fire({
+				  title: '<strong>내용을 작성해 주세요!</strong>',
+				  icon: 'info',
+				  focusConfirm: false,
+				  confirmButtonColor: '#78c2ad',
+				  confirmButtonText:
+				    '확인'
+				})
 			$("#campusboard-content").focus();
 			return;
 		}
 		if(pnumberis == ""){
-			alert("상품 번호를 작성해 주세요!");
+			Swal.fire({
+				  title: '<strong>상품 번호를 작성해 주세요!</strong>',
+				  icon: 'info',
+				  focusConfirm: false,
+				  confirmButtonColor: '#78c2ad',
+				  confirmButtonText:
+				    '확인'
+				})
 			$("#campusboard-pnumber").focus();
 			return;
 		}
 		if(checkistrue == false){
-			alert("상품 번호를 확인해 주세요!");
+			Swal.fire({
+				  title: '<strong>상품 번호를 확인해 주세요!</strong>',
+				  icon: 'info',
+				  focusConfirm: false,
+				  confirmButtonColor: '#78c2ad',
+				  confirmButtonText:
+				    '확인'
+				})
 			$("#campusboard-pnumber").focus();
 			return;
 		}
@@ -243,12 +367,25 @@ $(function(){
 		}
 		if(sort == '후기'){			
 			if(ratingpoint == 0){
-				alert("별점을 확인해 주세요!");
+			Swal.fire({
+				  title: '<strong>별점을 확인해 주세요!</strong>',
+				  icon: 'info',
+				  focusConfirm: false,
+				  confirmButtonColor: '#78c2ad',
+				  confirmButtonText:
+				    '확인'
+				})
 				$("#campusboard-title").focus();
 				return;
 			}
 		}
+		if(sort == '후기'){			
+			str+="<input type='hidden' name='b_private' value='no'>";
+		}
+
 		str+="<input type='hidden' name='b_rating' value='"+ratingpoint+"'>";
+		str+="<input type='hidden' name='p_number' value='"+pcode+"'>";
+		
 		console.log("별점 : "+ratingpoint)
 		console.log(str);
 		
