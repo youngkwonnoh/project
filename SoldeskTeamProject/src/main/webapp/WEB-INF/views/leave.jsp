@@ -5,30 +5,42 @@
 	<form class="container" id="formleave" action="leaveForm" method="post">
 	<sec:authentication property="principal" var="user"/>
 		<div class="login-Form">
-			<h1 class="h1" style="font-family: naBrush">회원 탈퇴</h1>
-			<div class="login-margin">
-				<label for="u_userid" class="sr-only">로그인</label>
-				<input type="text" id="u_userid" name="u_userid" class="form-control-login" value="${user.campusUser.u_userid}" readonly/>
-			</div> 
+			<sec:authorize access="hasRole('ROLE_ADMIN')">
+				<h1 class="h1" style="font-family: naBrush">회원 강제 탈퇴</h1>
+				<p></p>
+				<p></p>
+				<h3 class="h3" style="font-family: naBrush">강제 탈퇴 회원</h3>
+			</sec:authorize>
+			<sec:authorize access="hasRole('ROLE_USER')">
+				<h1 class="h1" style="font-family: naBrush">회원 탈퇴</h1>
+				<div class="login-margin">
+					<label for="u_userid" class="sr-only">로그인</label>
+					<input type="text" id="u_userid" name="u_userid" class="form-control-login" value="${user.campusUser.u_userid}" readonly/>
+				</div>
+			</sec:authorize> 
 			<sec:authorize access="hasRole('ROLE_ADMIN')">
 				<div class="login-margin">
 					<label for="u_userid" class="sr-only">로그인</label>
 					<input type="text" id="u_userid_A" name="u_userid_A" class="form-control-login" value="${userS.u_userid}" readonly/>
 				</div> 
 			</sec:authorize>
-			<div class="login-margin">
-				<label for="u_password" class="sr-only">비밀번호</label>
-				<input type="password" id="u_password" name="u_password" class="form-control-login" placeholder="비밀번호를 입력해 주세요" />
-			</div>
-			<div class="login-margin">
-				<label> 
-					회원탈퇴시 어쩌구저쩌구
-				</label>
-			</div>
+			<sec:authorize access="hasRole('ROLE_USER')">
+				<div class="login-margin">
+					<label for="u_password" class="sr-only">비밀번호</label>
+					<input type="password" id="u_password" name="u_password" class="form-control-login" placeholder="비밀번호를 입력해 주세요" />
+				</div>
+				<div class="login-margin">
+					<label> 
+						회원탈퇴 시 정보가 삭제됩니다.
+					</label>
+				</div>
+			</sec:authorize>
 			<sec:authorize access="hasRole('ROLE_ADMIN')">
             	<button class="btn btn-lg btn-danger btn-block" id="leaveCo" type="button">회원 강제 탈퇴</button>
             </sec:authorize>
-           	<button class="btn btn-lg btn-danger btn-block" id="leave" type="button">회원탈퇴</button>
+            <sec:authorize access="hasRole('ROLE_USER')">
+           		<button class="btn btn-lg btn-danger btn-block" id="leave" type="button">회원탈퇴</button>
+           	</sec:authorize>
 			<button class="btn btn-lg btn-primary btn-block" id="le_cancel"type="button" >취소</button>
 			
 			<div class="error-message">
