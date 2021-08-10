@@ -94,9 +94,7 @@
 							<button type="button" class="btn btn-secondary" onclick="location.href='/payment/paymentlistCamping?u_userid=${user.username}'">예약내역</a></button>
 							<p></p>
 						</sec:authorize>
-						<sec:authorize access="hasRole('ROLE_USER')">
-							<button type="submit" id="modify" class="btn btn-warning"><a href="/myModify">회원정보수정</a></button>
-						</sec:authorize>
+						<button type="submit" id="modify" class="btn btn-warning"><a href="/myModify">회원정보수정</a></button>
 
                    	
                     </ul>
